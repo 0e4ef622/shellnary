@@ -264,11 +264,11 @@ read_lei64() {
     declare -ai num;
     for i in {0..7}; do
         byte='';
-        IFS='' read -r -d '' -n1 byte;
+        IFS='' read -r -d '' -u $1 -n1 byte;
         if [ -z "$byte" ]; then
             num[$i]=0;
         else
-            num[$i]=$(( binaryLookup[$byte] ));
+            num[$i]=${binaryLookup["$byte"]};
         fi
     done
     echo $(( (num[7] << 56) +(num[6] << 48) + (num[5] << 40) + (num[4] << 32) + (num[3] << 24) + (num[2] << 16) + (num[1] << 8) + num[0] ));
@@ -279,14 +279,14 @@ read_bei64() {
     declare -ai num;
     for i in {0..7}; do
         byte='';
-        IFS='' read -r -d '' -n1 byte;
+        IFS='' read -r -d '' -u $1 -n1 byte;
         if [ -z "$byte" ]; then
             num[$i]=0;
         else
-            num[$i]=$(( binaryLookup[$byte] ));
+            num[$i]=${binaryLookup["$byte"]};
         fi
     done
-    echo $(( (num[0] << 56) +(num[1] << 48) + (num[2] << 40) + (num[3] << 32) + (num[4] << 24) + (num[5] << 16) + (num[6] << 8) + num[7] ));
+    echo $(( (num[0] << 56) + (num[1] << 48) + (num[2] << 40) + (num[3] << 32) + (num[4] << 24) + (num[5] << 16) + (num[6] << 8) + num[7] ));
 }
 
 read_leu32() {
@@ -294,18 +294,18 @@ read_leu32() {
     declare -ai num;
     for i in {0..3}; do
         byte='';
-        IFS='' read -r -d '' -n1 byte;
+        IFS='' read -r -d '' -u $1 -n1 byte;
         if [ -z "$byte" ]; then
             num[$i]=0;
         else
-            num[$i]=${binaryLookup[$byte]};
+            num[$i]=${binaryLookup["$byte"]};
         fi
     done
     echo $(( (num[3] << 24) + (num[2] << 16) + (num[1] << 8) + num[0] ));
 }
 
 read_lei32() {
-    declare -i num=$(read_leu32);
+    declare -i num=$(read_leu32 "$@");
     echo $(( num | ~((((num & 0x80000000) >> 31) - 1) | 0xffffffff) ))
 }
 
@@ -314,18 +314,18 @@ read_beu32() {
     declare -ai num;
     for i in {0..3}; do
         byte='';
-        IFS='' read -r -d '' -n1 byte;
+        IFS='' read -r -d '' -u $1 -n1 byte;
         if [ -z "$byte" ]; then
             num[$i]=0;
         else
-            num[$i]=${binaryLookup[$byte]};
+            num[$i]=${binaryLookup["$byte"]};
         fi
     done
     echo $(( (num[0] << 24) + (num[1] << 16) + (num[2] << 8) + num[3] ));
 }
 
 read_bei32() {
-    declare -i num=$(read_beu32);
+    declare -i num=$(read_beu32 "$@");
     echo $(( num | ~((((num & 0x80000000) >> 31) - 1) | 0xffffffff) ))
 }
 
@@ -334,18 +334,18 @@ read_leu16() {
     declare -ai num;
     for i in {0..1}; do
         byte='';
-        IFS='' read -r -d '' -n1 byte;
+        IFS='' read -r -d '' -u $1 -n1 byte;
         if [ -z "$byte" ]; then
             num[$i]=0;
         else
-            num[$i]=${binaryLookup[$byte]};
+            num[$i]=${binaryLookup["$byte"]};
         fi
     done
     echo $(( (num[1] << 8) + num[0] ));
 }
 
 read_lei16() {
-    declare -i num=$(read_leu16);
+    declare -i num=$(read_leu16 "$@");
     echo $(( num | ~((((num & 0x8000) >> 15) - 1) | 0xffff) ))
 }
 
@@ -354,41 +354,45 @@ read_beu16() {
     declare -ai num;
     for i in {0..1}; do
         byte='';
-        IFS='' read -r -d '' -n1 byte;
+        IFS='' read -r -d '' -u $1 -n1 byte;
         if [ -z "$byte" ]; then
             num[$i]=0;
         else
-            num[$i]=${binaryLookup[$byte]};
+            num[$i]=${binaryLookup["$byte"]};
         fi
     done
     echo $(( (num[0] << 8) + num[1] ));
 }
 
 read_bei16() {
-    declare -i num=$(read_beu16);
+    declare -i num=$(read_beu16 "$@");
     echo $(( num | ~((((num & 0x8000) >> 15) - 1) | 0xffff) ))
 }
 
 read_u8() {
     local byte;
     declare -ai num;
-    IFS='' read -r -d '' -n1 byte;
+    IFS='' read -r -d '' -u $1 -n1 byte;
     if [ -z "$byte" ]; then
         num=0;
     else
-        num=${binaryLookup[$byte]};
+        num=${binaryLookup["$byte"]};
     fi
     echo $num;
 }
 
 read_i8() {
-    declare -i num=$(read_leu8);
+    declare -i num=$(read_u8 "$@");
     echo $(( num | ~((((num & 0x80) >> 7) - 1) | 0xff) ))
 }
 
 forward_seek() { # read $1 bytes and throw them away
     declare -i n=$1;
-    while read -r -d '' -n $n; do
-        [ ${#REPLY} -lt $n ] && (( n -= ${#REPLY} + 1 )) || break;
+    while read -r -d '' -u $2 -n $n; do
+        if [ ${#REPLY} -lt $n ]; then
+            (( n -= ${#REPLY} + 1 ));
+        else
+            break;
+        fi
     done
 }
