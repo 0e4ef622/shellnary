@@ -20,6 +20,7 @@ Simple example:
 ```bash
 $ file image.png
 image.png: PNG image data, 313 x 102, 8-bit/color RGB, non-interlaced
+$ . shellnary.sh
 $ exec 3<>image.png
 $ forward_seek 16 3
 $ width=$(read_beu32 3)
