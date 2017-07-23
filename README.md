@@ -15,6 +15,19 @@ numbers
 * `forward_seek <bytes> <fd>` Read `<bytes>` bytes and throw them away,
 effectively seeking forward (there is no backward seek unfortunately).
 
+Simple example:
+
+```bash
+$ file image.png
+image.png: PNG image data, 313 x 102, 8-bit/color RGB, non-interlaced
+$ exec 3<>image.png
+$ forward_seek 16 3
+$ width=$(read_beu32 3)
+$ height=$(read_beu32 3)
+$ echo $width x $height
+313 x 102
+```
+
 ## TODO
 
 * Add functions for writing
