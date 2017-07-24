@@ -32,7 +32,6 @@ $ echo $width x $height
 ## TODO
 
 * Add functions for writing
-* Add a function for seeking forward
 * Support LEB128 and VLQ
 
 Requires bash 4+ for associative arrays.
