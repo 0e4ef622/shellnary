@@ -396,3 +396,29 @@ forward_seek() { # read $1 bytes and throw them away
         fi
     done
 }
+
+print_as_u64() {
+    local str;
+    declare -i num=$1;
+
+    if [ $num -lt 0 ]; then
+        (( num ^= 1 << 63));
+        local lastdigit=${num:$((${#num}-1)):1}
+
+        str=$(( ($lastdigit + 8) % 10 ));
+        (( num /= 10 ));
+
+        (( num += 922337203685477580));
+        if [ $lastdigit -ge 2 ]; then
+            (( ++num ));
+        fi
+        while [ $num -ne 0 ]; do
+            str=$(( num % 10 ))$str;
+            (( num /= 10 ));
+        done
+        echo $str;
+    else
+        echo $1;
+    fi
+
+}
