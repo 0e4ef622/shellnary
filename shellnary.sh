@@ -261,6 +261,7 @@ declare -A binaryLookup=(
 
 read_lei64() {
     local byte;
+    local i;
     declare -ai num;
     for i in {0..7}; do
         byte='';
@@ -276,6 +277,7 @@ read_lei64() {
 
 read_bei64() {
     local byte;
+    local i;
     declare -ai num;
     for i in {0..7}; do
         byte='';
@@ -291,6 +293,7 @@ read_bei64() {
 
 read_leu32() {
     local byte;
+    local i;
     declare -ai num;
     for i in {0..3}; do
         byte='';
@@ -311,6 +314,7 @@ read_lei32() {
 
 read_beu32() {
     local byte;
+    local i;
     declare -ai num;
     for i in {0..3}; do
         byte='';
@@ -331,6 +335,7 @@ read_bei32() {
 
 read_leu16() {
     local byte;
+    local i;
     declare -ai num;
     for i in {0..1}; do
         byte='';
@@ -351,6 +356,7 @@ read_lei16() {
 
 read_beu16() {
     local byte;
+    local i;
     declare -ai num;
     for i in {0..1}; do
         byte='';
@@ -389,8 +395,9 @@ read_i8() {
 forward_seek() { # read $1 bytes and throw them away
     declare -i n=$1;
     while read -r -d '' -u $2 -n $n; do
-        if [ ${#REPLY} -lt $n ]; then
-            (( n -= ${#REPLY} + 1 ));
+        local len=$(( ${#REPLY} + 1 ));
+        if [ $len -lt $n ]; then
+            (( n -= $len ));
         else
             break;
         fi
